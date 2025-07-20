@@ -56,4 +56,3 @@ The diagram below illustrates Phase 2 of the architecture:
 * **Langchain Nodes for n8n:** Utilized for building the RAG pipeline components within n8n.
 * **Python Libraries:** `selenium`, `requests`, `json`, `re`, `pandas` (for web scraping and data preparation).
 
-## Project Structure
