@@ -6,6 +6,9 @@ Welcome to the **BOT with BENEFITS**, an intelligent RAG (Retrieval Augmented Ge
 
 Our chatbot aims to simplify access to government benefits by offering a user-friendly interface that guides individuals through eligibility checks and provides detailed scheme information.
 
+
+# Demo Video : 
+https://drive.google.com/file/d/15btp71yAHjp0ImxSxrlQ_XkoNRXIWXVQ/view?usp=sharing
 ## Features
 
 * **Guided Eligibility Check:** Collects user details (name, gender, age, state, rural/urban, family income, marital status, occupation, caste) to determine eligible schemes.
