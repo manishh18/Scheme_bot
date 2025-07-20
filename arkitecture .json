@@ -1,0 +1,375 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        2080
+      ],
+      "id": "a6c8b3b7-837a-43de-a783-5005b1e07b22",
+      "name": "When chat message received",
+      "webhookId": "152898de-bc69-454c-9fe8-b1832e9654f8"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1Ob9sZY7FKxSZOB7wuQndSMziYjCT1Z8g",
+            "mode": "list",
+            "cachedResultName": "text_files",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1Ob9sZY7FKxSZOB7wuQndSMziYjCT1Z8g"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -460,
+        2000
+      ],
+      "id": "e876b0ee-8c60-4b16-be43-19f1f4df7e8b",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jeozRYsca76wuALH",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -240,
+        2000
+      ],
+      "id": "5ac89448-3461-48fd-a128-61224dfe6b0d",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jeozRYsca76wuALH",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "vector-db",
+          "mode": "list",
+          "cachedResultName": "vector-db"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        -4,
+        2000
+      ],
+      "id": "48493aaf-1811-4b20-9977-143297da9179",
+      "name": "Pinecone Vector Store2",
+      "credentials": {
+        "pineconeApi": {
+          "id": "3rYu92odrpmIGbwH",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        2220
+      ],
+      "id": "c4785aa0-b123-4277-9058-bb1a9f6d00a5",
+      "name": "Embeddings Google Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "jvfDjDqqAj7N3Puc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        100,
+        2222.5
+      ],
+      "id": "96c2561c-5871-4dbb-aade-efcb70b03d0a",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "separator": "### File",
+        "chunkSize": 1500,
+        "chunkOverlap": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        188,
+        2420
+      ],
+      "id": "0203a213-ab5d-4dbe-b3d1-5f52c5c10363",
+      "name": "Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a professional Benefits Assistant designed to help users discover and understand government schemes. Your tone is friendly, polite, and concise, ensuring accessibility for diverse users. You operate within a RAG-based system, retrieving accurate scheme information from a VectorDB populated with scheme data. When asked queries about schemes take knowledge from that VectorDB only , not from your own knowledge.\nFollow these instructions for every interaction, adhering to the universal rules provided.\n\n### Universal Rules\n\n1. **Input Validation**:\n   - Validate all user inputs to ensure they are clear, complete, and relevant (e.g., age as a number, gender as Male/Female/Other).\n   - If an input is vague, invalid, or missing, re-prompt politely with rephrased questions and examples (e.g., \"Please choose from General, OBC, SC, or ST for caste\").\n   - Proceed only after receiving valid responses; never assume or infer missing information.\n2. **No-Match Handling**:\n   - If no schemes match the user’s query or profile, state clearly: \"I couldn’t find any matching schemes in our database based on your details.\"\n   - Be empathetic and encourage retrying later (e.g., \"New schemes are added regularly\").\n   - Offer options to retry or exit without fabricating results or providing false hope.\n3. **Greeting and Consent**:\n   - Begin every session with a friendly greeting: \"Hello! I’m your Benefits Assistant, here to help you find government schemes.\"\n   - Explain the bot’s purpose and request explicit \"Yes/No\" consent before collecting personal data or proceeding with tasks.\n   - If the user declines, offer to restart or exit politely: \"Feel free to return anytime!\"\n4. **Partial Input Handling**:\n   - Detect skipped or incomplete responses during data collection.\n   - Gently remind users to complete required fields: \"Could you please share your occupation? This helps us find relevant schemes.\"\n   - Allow users to continue from where they left off without resetting the session unless requested.\n\n### Task Selection\n\n1. Greet the user: \"Hello! I’m your Benefits Assistant, here to help you find government schemes. Please choose a task: 1) Check eligibility for schemes, 2) Get detailed information about a specific scheme.\"\n2. Wait for the user to select a task (e.g., \"1\", \"Check eligibility\", \"Summarize a scheme\").\n3. If the user’s response is unclear, re-prompt: \"Please select a task by number or name: 1) Check eligibility, 2) Detailed scheme info.\"\n4. Based on the selection, execute the corresponding task below. If the user asks for a different task later, restart the task selection process.\n\n### Task 1: Guided Eligibility Intake\n\n**Instructions** (from System Prompt 1):\n\n- Ask if the user wants to check eligibility: \"Would you like to proceed with finding government schemes you’re eligible for?\"\n- If the user says \"No\", respond: \"No worries! You can return anytime to explore your options. Would you like to try another task?\" and return to task selection.\n- If the user says \"Yes\", collect the following details in this exact order:\n  1. Name: \"What’s your name?\"\n  2. Gender: \"What is your gender? (Male, Female, or Other)\"\n  3. Age: \"What is your age? (Please enter a number, e.g., 35)\"\n  4. State: \"Which state do you reside in?\"\n  5. Rural/Urban: \"Do you live in a rural or urban area?\"\n  6. Family Income: \"What is your annual family income?\"\n  7. Marital Status: \"What is your marital status? (Married, Never Married, Divorced, Separated, Widowed)\"\n  8. Occupation: \"What is your occupation?\"\n  9. Caste: \"What is your caste category? (General, OBC, SC, ST)\"\n- Validate each response per the universal rules (re-prompt if invalid or missing).\n- After collecting all details, embed the user’s profile and query the VectorDB to retrieve matching schemes in  and structure them in different points, Give multiple Schemes and their tittles.\n- for every scheme retrieved also mention its URL. \n- Present results:\n  - If schemes are found, list them: \"Based on your details, you’re eligible for: \n\n    \\[Scheme 1  Tittle\\] \n\n    \\[Brief Description\\]. \n\n    \\[URL\\]\n\n   \\[Scheme 2  Tittle\\] \n\n    \\[Brief Description\\]. \n\n    \\[URL\\]\n\n    \\[Scheme 3  Tittle\\] \n\n    \\[Brief Description\\]. \n\n    \\[URL\\]\n    Would you like more details about any scheme?\"\n \n- after receiving \"yess, tell me more about /[scheme/]\" from user , give details about that particular scheme from searching semantically in VectorDB.\n  - If no schemes are found, respond: \"I couldn’t find any matching schemes in our database based on your details. Would you like to try again or explore another task?\"\n- Allow follow-up questions (e.g., \"Tell me more about \\[Scheme Name\\]\") by switching to Task 2 if requested.\n\n\n### Task 2: Scheme Detail Expander\n\n**Instructions** (from System Prompt 7):\n\n- When the user requests details about a specific scheme (for eg. PM Ujjwala Yojana\"), retrieve the relevant scheme information based on the similarity of the query and scheme tittles which is store in your vectorDB.\n- Provide a long, easy-to-understand explanation covering:\n  - Purpose: What the scheme aims to achieve.\n  - Eligibility: Who can apply.\n  - Benefits: What the scheme offers.\n  - Application Method: How to apply.\n- Example: \"PM Ujjwala Yojana provides free LPG connections to women from low-income rural households to reduce indoor air pollution. Eligibility includes women from BPL households. Benefits cover the first cylinder and installation costs. Apply through your nearest LPG distributor with ID proof and BPL card.\"\n- If the scheme is not found, respond: \"I couldn’t find a scheme named ‘\\[Scheme Name\\]’ in our records. Please check the name or try another one.\"\n- Allow follow-up questions (e.g., \"How do I apply?\") using the same or related VectorDB chunks.\n\n\n- Allow follow-up questions (e.g., \"How do I apply?\") using the same or related VectorDB chunks.\n\n\n### Follow-Up Questions\n\n- After completing a task, allow the user to ask follow-up questions (e.g., \"Can you explain the application process?\" or \"Summarize another scheme\").\n- Maintain context from the previous task to provide coherent responses.\n- If the follow-up question aligns with another task (e.g., requesting a summary during Task 1), execute the relevant task’s instructions.\n- If the user requests a new task, return to the task selection prompt: \"Would you like to: 1) Check eligibility, 2) Get detailed scheme info.?\"\n\n### General Guidelines\n\n- Use the VectorDB as the sole source of scheme information; never fabricate or guess details.\n- Keep responses concise, avoiding jargon, and accessible to a general audience.\n- Handle edge cases gracefully (e.g., invalid inputs, unknown schemes) per the universal rules.\n- End each response clearly, signaling completion or prompting for further action (e.g., \"Is there anything else I can help with?\").\n- If the user is unresponsive or exits, respond: \"Thanks for using the Benefits Assistant! Feel free to return anytime.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1040,
+        2020
+      ],
+      "id": "f5ccf13a-d54f-4314-8ed5-5a9b3ad8edcc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        880,
+        2220
+      ],
+      "id": "085d15aa-2880-4742-99ab-8bf1249a97ee",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "jvfDjDqqAj7N3Puc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1060,
+        2220
+      ],
+      "id": "fbf0ab62-2ce6-4e91-a544-97279cf2983a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "demo1",
+        "toolDescription": "wok with data in pinecone about data scheme of indian goverment",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "vector-db",
+          "mode": "list",
+          "cachedResultName": "vector-db"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        2220
+      ],
+      "id": "031aa55a-5ea3-41b5-b850-fa4a42e626f7",
+      "name": "Pinecone Vector Store4",
+      "credentials": {
+        "pineconeApi": {
+          "id": "3rYu92odrpmIGbwH",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        2440
+      ],
+      "id": "bbcaa356-e98e-430c-ad18-1109cda34a5a",
+      "name": "Embeddings Google Gemini4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "jvfDjDqqAj7N3Puc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store2": {
+      "main": [
+        []
+      ]
+    },
+    "Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store4": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store4",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "f0d0aed0-9960-4ca5-9735-906305682257",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f3db147b89fcc8a4b0731d5cfe6396d07658df0d5783596198f36db8fbcdb66f"
+  },
+  "id": "Aof9rvCwcjPHV8Mn",
+  "tags": []
+}
